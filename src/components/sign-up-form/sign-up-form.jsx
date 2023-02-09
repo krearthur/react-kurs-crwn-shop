@@ -1,11 +1,13 @@
-import { useState } from "react";
+import { Fragment, useState, useContext } from "react";
 
 import {
   createAuthUserWithEmailAndPassword,
-  createUserDocumentFromAuth,
+  createOrGetUserDocumentFromAuth,
 } from "../../utils/firebase/firebase.utils";
+
 import FormInput from "../form-input/form-input.component";
 import Button from "../button/button.component";
+import { UserContext } from "../../context/user.context";
 
 import "./sign-up-form.styles.scss";
 
@@ -19,6 +21,8 @@ const defaultFormFields = {
 const SignUpForm = () => {
   const [formFields, setFormFields] = useState(defaultFormFields);
   const { displayName, email, password, confirmPassword } = formFields;
+
+  const { currentUser } = useContext(UserContext);
 
   const resetFormFields = () => {
     setFormFields(defaultFormFields);
@@ -41,7 +45,7 @@ const SignUpForm = () => {
       );
 
       // Create user document with display name in firebase/firestore
-      await createUserDocumentFromAuth(user, { displayName });
+      await createOrGetUserDocumentFromAuth(user, { displayName });
 
       resetFormFields();
     } catch (error) {
@@ -61,49 +65,55 @@ const SignUpForm = () => {
 
   return (
     <div className="sign-up-container">
-      <h2>Don't have an account?</h2>
-      <span>Create a new account</span>
-      <form onSubmit={handleSubmit}>
-        <FormInput
-          label="Display Name"
-          type="text"
-          onChange={handleChange}
-          name="displayName"
-          value={displayName}
-          required
-        />
+      {!currentUser && (
+        <Fragment>
+          <h2>Don't have an account?</h2>
 
-        <FormInput
-          label="Email"
-          type="email"
-          onChange={handleChange}
-          name="email"
-          value={email}
-          required
-        />
+          <span>Create a new account</span>
+          <form onSubmit={handleSubmit}>
+            <FormInput
+              label="Display Name"
+              type="text"
+              onChange={handleChange}
+              name="displayName"
+              value={displayName}
+              required
+            />
 
-        <FormInput
-          label="Password"
-          type="password"
-          onChange={handleChange}
-          name="password"
-          value={password}
-          minLength="6"
-          required
-        />
+            <FormInput
+              label="Email"
+              type="email"
+              onChange={handleChange}
+              name="email"
+              value={email}
+              required
+            />
 
-        <FormInput
-          label="Confirm Password"
-          type="password"
-          onChange={handleChange}
-          name="confirmPassword"
-          value={confirmPassword}
-          minLength="6"
-          required
-        />
+            <FormInput
+              label="Password"
+              type="password"
+              onChange={handleChange}
+              name="password"
+              value={password}
+              minLength="6"
+              required
+            />
 
-        <Button type="submit">Sign Up</Button>
-      </form>
+            <FormInput
+              label="Confirm Password"
+              type="password"
+              onChange={handleChange}
+              name="confirmPassword"
+              value={confirmPassword}
+              minLength="6"
+              required
+            />
+
+            <Button type="submit">Sign Up</Button>
+          </form>
+        </Fragment>
+      )}
+      {currentUser && <h2>Welcome back, bro~</h2>}
     </div>
   );
 };
